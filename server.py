@@ -6,6 +6,11 @@ HOST = "127.0.0.1"
 PORT = 9090
 
 
+def log(direction: str, payload) -> None:
+    """Печатает в консоль одну строку лога."""
+    print(f"[{direction}] {payload}")
+
+
 def read(data):
     try:
         body_size = data[0:5]
@@ -91,25 +96,38 @@ def start_server():
         server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_sock.bind((HOST, PORT))
         server_sock.listen(1)
-        print("listening")
+        log("INFO", f"listening on {HOST}:{PORT}")
 
         conn, addr = server_sock.accept()
         with conn:
-            print(f"connected from: {addr}")
+            log("INFO", f"connected from {addr}")
             while True:
                 data = conn.recv(1024)
                 if not data:
-                    print("client closed")
+                    log("INFO", "client closed")
                     break
-                parsed = read(data.decode("utf-8"))
+
+                raw = data.decode("utf-8")
+                log("IN ", raw)
+
+                parsed = read(raw)
                 if parsed is None:
+                    log("WARN", "bad request (failed to parse)")
                     err = "<reply><error>bad request</error></reply>"
-                    conn.sendall(("00" + str(len(err)).zfill(4) + err).encode("utf-8"))
+                    packet = "00" + str(len(err)).zfill(4) + err
+                    log("OUT", packet)
+                    conn.sendall(packet.encode("utf-8"))
                     continue
-                _, op_code, body = parsed
+
+                body_size, op_code, body = parsed
+                log("PARSE", f"op_code={op_code} body_size={body_size} body={body}")
+
                 exec_result = execute(op_code, body)
+                log("EXEC", f"op_code={op_code} -> {exec_result}")
+
                 xml = create_reply(op_code, exec_result)
                 response = op_code.zfill(2) + str(len(xml)).zfill(4) + xml
+                log("OUT", response)
                 conn.sendall(response.encode("utf-8"))
 
 
