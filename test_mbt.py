@@ -21,7 +21,6 @@ text_strategy = st.text(
 )
 
 def xml_body(tag_values):
-    """Собирает XML-тело запроса <request>...</request>."""
     parts = []
     for tag, value in tag_values:
         parts.append(f"<{tag}>{escape(str(value))}</{tag}>")
@@ -203,11 +202,6 @@ class RPCStateMachine(RuleBasedStateMachine):
 
     @rule()
     def simulate_delete(self):
-        """
-        Кладёт uid обратно в пулы main.py и модели.
-        Следующее create_* попадёт в ветку
-        `if len(list_x[0]) > 1: list_x[0].pop()`.
-        """
         uid = 9000
         main.list_client[0].append(uid)
         main.list_message[0].append(uid)
