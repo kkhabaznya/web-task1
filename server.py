@@ -1,6 +1,6 @@
 import socket
 import main
-import xml.etree.element_tree as element_tree
+import xml.etree.ElementTree as element_tree
 
 HOST = "127.0.0.1"
 PORT = 9090
