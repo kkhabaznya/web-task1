@@ -1,6 +1,6 @@
 import socket
 import main
-import xml.etree.ElementTree as elementTree
+import xml.etree.element_tree as element_tree
 
 HOST = "127.0.0.1"
 PORT = 9090
@@ -16,7 +16,7 @@ def read(data):
         body_size = data[0:5]
         op_code = data[5]
         body = data[6 : 6 + int(body_size)]
-        elementTree.fromstring(body)
+        element_tree.fromstring(body)
         if "<request>" not in body or "</request>" not in body:
             raise ValueError("no request tags")
     except Exception:
@@ -25,11 +25,13 @@ def read(data):
 
 
 def execute(op_code, body):
-    root = elementTree.fromstring(body)
+    root = element_tree.fromstring(body)
     buffer = [item.text for item in root]
     match op_code:
         case "1":
-            return main.create_feedback(buffer[0], buffer[1], buffer[2], int(buffer[3]))
+            return main.create_feedback(
+                buffer[0], buffer[1], buffer[2], int(buffer[3])
+            )
         case "2":
             return main.create_message(
                 buffer[0], int(buffer[1]), buffer[2], buffer[3], buffer[4]
@@ -62,7 +64,15 @@ def create_reply(op_code, result):
             )
         case "2":
             buffer += _flat_reply(
-                ["uid", "created", "data", "client", "description", "tags", "stage"],
+                [
+                    "uid",
+                    "created",
+                    "data",
+                    "client",
+                    "description",
+                    "tags",
+                    "stage",
+                ],
                 result,
             )
         case "3":
@@ -120,7 +130,10 @@ def start_server():
                     continue
 
                 body_size, op_code, body = parsed
-                log("PARSE", f"op_code={op_code} body_size={body_size} body={body}")
+                log(
+                    "PARSE",
+                    f"op_code={op_code} body_size={body_size} body={body}",
+                )
 
                 exec_result = execute(op_code, body)
                 log("EXEC", f"op_code={op_code} -> {exec_result}")

@@ -5,7 +5,7 @@ PORT = 9090
 FIELD_COUNTS = {"feedback": 6, "message": 7, "client": 3}
 
 
-class rpc_client:
+class RpcClient:
 
     def send_create_feedback(self):
         buffer = ""
@@ -19,7 +19,9 @@ class rpc_client:
         buffer = ""
         buffer += "<data>" + str(input("data: ")) + "</data>"
         buffer += "<client>" + str(input("client: ")) + "</client>"
-        buffer += "<description>" + str(input("description: ")) + "</description>"
+        buffer += (
+            "<description>" + str(input("description: ")) + "</description>"
+        )
         buffer += "<tags>" + str(input("tags: ")) + "</tags>"
         buffer += "<stage>" + str(input("stage: ")) + "</stage>"
         return buffer
@@ -65,7 +67,13 @@ class rpc_client:
                 body_size = input("size: ").zfill(5)
                 op_code = input("code: ")
                 body_data = self.code_convert(op_code)
-                msg = body_size + op_code + "<request>" + body_data + "</request>"
+                msg = (
+                    body_size
+                    + op_code
+                    + "<request>"
+                    + body_data
+                    + "</request>"
+                )
                 print(msg)
                 sock.sendall(msg.encode("utf-8"))
                 data = sock.recv(1024)
@@ -73,5 +81,5 @@ class rpc_client:
 
 
 if __name__ == "__main__":
-    client = rpc_client()
+    client = RpcClient()
     client.start_client()

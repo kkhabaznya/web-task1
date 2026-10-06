@@ -120,13 +120,16 @@ def edit(datatype: str, uid: int):
     match datatype:
         case "feedback":
             for item in list_feedback[1:]:
-                edit_data(item, list_feedback)
+                if type(item) != int and item[0] == uid:
+                    edit_data(item, list_feedback)
         case "message":
             for item in list_message[1:]:
-                edit_data(item, list_message)
+                if type(item) != int and item[0] == uid:
+                    edit_data(item, list_message)
         case "client":
             for item in list_client[1:]:
-                edit_data(item, list_client)
+                if type(item) != int and item[0] == uid:
+                    edit_data(item, list_client)
 
 
 def select_data():

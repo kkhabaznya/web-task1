@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 from datetime import datetime
 from xml.sax.saxutils import escape
 
@@ -20,11 +20,13 @@ text_strategy = st.text(
     max_size=20,
 )
 
+
 def xml_body(tag_values):
     parts = []
     for tag, value in tag_values:
         parts.append(f"<{tag}>{escape(str(value))}</{tag}>")
     return "<request>" + "".join(parts) + "</request>"
+
 
 class Model:
     def __init__(self):
@@ -99,6 +101,7 @@ class Model:
                         rows.append([client[2], feedback[2], message[5]])
         return rows
 
+
 class RPCStateMachine(RuleBasedStateMachine):
     clients = Bundle("clients")
     messages = Bundle("messages")
@@ -123,7 +126,7 @@ class RPCStateMachine(RuleBasedStateMachine):
         self.model.client.append(list(result))
 
         reply = server.create_reply("3", result)
-        root = ET.fromstring(reply)
+        root = element_tree.fromstring(reply)
         assert root.findtext("uid") == str(expected_uid)
 
         full = str(len(body)).zfill(5) + "3" + body
@@ -162,7 +165,7 @@ class RPCStateMachine(RuleBasedStateMachine):
         self.model.message.append(list(result))
 
         reply = server.create_reply("2", result)
-        root = ET.fromstring(reply)
+        root = element_tree.fromstring(reply)
         assert root.findtext("uid") == str(expected_uid)
 
         return expected_uid
@@ -195,7 +198,7 @@ class RPCStateMachine(RuleBasedStateMachine):
         self.model.feedback.append(list(result))
 
         reply = server.create_reply("1", result)
-        root = ET.fromstring(reply)
+        root = element_tree.fromstring(reply)
         assert root.findtext("uid") == str(expected_uid)
 
         return expected_uid
@@ -228,12 +231,16 @@ class RPCStateMachine(RuleBasedStateMachine):
     @rule(
         message=messages,
         data=text_strategy,
-        new_client=st.one_of(st.integers(min_value=0, max_value=100), text_strategy),
+        new_client=st.one_of(
+            st.integers(min_value=0, max_value=100), text_strategy
+        ),
         description=text_strategy,
         tags=text_strategy,
         stage=text_strategy,
     )
-    def edit_message(self, message, data, new_client, description, tags, stage):
+    def edit_message(
+        self, message, data, new_client, description, tags, stage
+    ):
         values = ["", "", data, new_client, description, tags, stage, "extra"]
         body = xml_body(
             [("datatype", "message"), ("uid", message)]
@@ -253,7 +260,9 @@ class RPCStateMachine(RuleBasedStateMachine):
         response=text_strategy,
         stage=text_strategy,
         failure=text_strategy,
-        new_message=st.one_of(st.integers(min_value=0, max_value=100), text_strategy),
+        new_message=st.one_of(
+            st.integers(min_value=0, max_value=100), text_strategy
+        ),
     )
     def edit_feedback(self, feedback, response, stage, failure, new_message):
         values = ["", "", response, stage, failure, new_message, "extra"]
@@ -349,6 +358,7 @@ class RPCStateMachine(RuleBasedStateMachine):
         assert main.list_client[1:] == self.model.client
         assert main.list_message[1:] == self.model.message
         assert main.list_feedback[1:] == self.model.feedback
+
 
 def test_rpc_mbt():
     run_state_machine_as_test(
